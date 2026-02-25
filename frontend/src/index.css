@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  ::selection {
+    @apply bg-primary-500/30;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-soft;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium 
+           transition-all duration-200 shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 
+           hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed
+           disabled:hover:translate-y-0 disabled:hover:shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 
+           border border-gray-200 dark:border-gray-700 rounded-xl font-medium
+           hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200
+           hover:border-gray-300 dark:hover:border-gray-600;
+  }
+  
+  .btn-danger {
+    @apply px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium
+           transition-all duration-200 shadow-lg shadow-red-500/25 hover:shadow-red-500/40
+           hover:-translate-y-0.5 active:translate-y-0;
+  }
+  
+  .card-modern {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-soft border border-gray-100 
+           dark:border-gray-700/50 overflow-hidden transition-all duration-300
+           hover:shadow-lg hover:border-gray-200 dark:hover:border-gray-600;
+  }
+  
+  .input-modern {
+    @apply w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 
+           dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100
+           placeholder-gray-400 dark:placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
+           transition-all duration-200;
+  }
+  
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply badge bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+  }
+  
+  .badge-warning {
+    @apply badge bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+  }
+  
+  .badge-danger {
+    @apply badge bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+  }
+  
+  .badge-info {
+    @apply badge bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-purple-600;
+  }
+  
+  .animate-enter {
+    @apply animate-fade-in animate-slide-up;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+/* Focus visible styles */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
