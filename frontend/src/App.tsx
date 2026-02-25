@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MeetingSetup } from './components/MeetingSetup';
 import { Header } from './components/Header';
 import { TranscriptView } from './components/TranscriptView';
@@ -10,8 +10,11 @@ import { useAudioRecorder } from './hooks/useAudioRecorder';
 import type { 
   TranscriptEntry, 
   ActionItem, 
-  MeetingSummary as SummaryType
+  MeetingSummary as SummaryType,
+  WebSocketMessage 
 } from './types/meeting';
+
+const API_URL = 'http://localhost:8000';
 
 function App() {
   const [meetingId, setMeetingId] = useState<string | null>(null);
@@ -25,32 +28,19 @@ function App() {
   const [startTime, setStartTime] = useState<Date | null>(null);
 
   const { sendMessage, sendCommand, lastMessage, readyState } = useWebSocket(meetingId);
-
-  // ✅ callback audio langsung di hook
-  const {
-    isRecording,
-    error: recordingError,
-    startRecording,
-    stopRecording
-  } = useAudioRecorder((audioData: ArrayBuffer) => {
-    sendMessage(audioData);
-  });
+  const { isRecording, error: recordingError, startRecording, stopRecording } = useAudioRecorder();
 
   // Duration timer
   useEffect(() => {
     if (!startTime || !meetingId) return;
-
+    
     const interval = setInterval(() => {
-      const diff = Date.now() - startTime.getTime();
+      const diff = new Date().getTime() - startTime.getTime();
       const minutes = Math.floor(diff / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
-      setDuration(
-        `${minutes.toString().padStart(2, '0')}:${seconds
-          .toString()
-          .padStart(2, '0')}`
-      );
+      setDuration(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
     }, 1000);
-
+    
     return () => clearInterval(interval);
   }, [startTime, meetingId]);
 
@@ -62,21 +52,18 @@ function App() {
       case 'transcript':
         setTranscript(prev => [...prev, lastMessage.data]);
         break;
-
+      
       case 'insights':
         if (lastMessage.data?.action_items) {
-          setActionItems(prev => [
-            ...prev,
-            ...lastMessage.data.action_items
-          ]);
+          setActionItems(prev => [...prev, ...lastMessage.data.action_items]);
         }
         break;
-
+      
       case 'summary':
         setSummary(lastMessage.data);
         setIsGeneratingSummary(false);
         break;
-
+      
       case 'error':
         console.error('Server error:', lastMessage.message);
         break;
@@ -87,18 +74,19 @@ function App() {
   const handleStartMeeting = async (title: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/meetings`, {
+      const response = await fetch(`${API_URL}/meetings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title })
       });
-
+      
       if (!response.ok) throw new Error('Failed to create meeting');
-
+      
       const data = await response.json();
       setMeetingId(data.id);
       setMeetingTitle(title);
       setStartTime(new Date());
+      
     } catch (error) {
       alert('Failed to start meeting: ' + (error as Error).message);
     } finally {
@@ -106,19 +94,23 @@ function App() {
     }
   };
 
-  // ✅ Start recording ketika WS ready
+  // Start recording when WebSocket connected
   useEffect(() => {
     if (meetingId && readyState === WebSocket.OPEN && !isRecording) {
-      startRecording(); // TANPA PARAMETER
+      startRecording((audioData) => {
+        sendMessage(audioData);
+      });
     }
-  }, [meetingId, readyState, isRecording, startRecording]);
+  }, [meetingId, readyState, isRecording, startRecording, sendMessage]);
 
+  // End meeting
   const handleEndMeeting = useCallback(() => {
     setIsGeneratingSummary(true);
     sendCommand('finalize');
     stopRecording();
   }, [sendCommand, stopRecording]);
 
+  // Reset untuk meeting baru
   const handleNewMeeting = () => {
     setMeetingId(null);
     setMeetingTitle('');
@@ -130,13 +122,9 @@ function App() {
     setStartTime(null);
   };
 
+  // Show setup screen
   if (!meetingId) {
-    return (
-      <MeetingSetup
-        onStart={handleStartMeeting}
-        isLoading={isLoading}
-      />
-    );
+    return <MeetingSetup onStart={handleStartMeeting} isLoading={isLoading} />;
   }
 
   return (
@@ -153,28 +141,28 @@ function App() {
         duration={duration}
       />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column - Transcript */}
           <div className="lg:col-span-7 xl:col-span-8">
-            <TranscriptView
-              entries={transcript}
+            <TranscriptView 
+              entries={transcript} 
               isProcessing={isRecording && transcript.length === 0}
             />
           </div>
 
+          {/* Right Column - Analytics */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-6">
             <SentimentChart entries={transcript} />
             <ActionItems items={actionItems} />
-            <MeetingSummary
-              summary={summary}
-              isGenerating={isGeneratingSummary}
-            />
+            <MeetingSummary summary={summary} isGenerating={isGeneratingSummary} />
           </div>
         </div>
       </main>
 
+      {/* Error Toast */}
       {recordingError && (
-        <div className="fixed bottom-6 right-6 bg-red-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
+        <div className="fixed bottom-6 right-6 bg-red-500 text-white px-6 py-4 rounded-xl shadow-lg animate-enter flex items-center gap-3">
           <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
           <span>{recordingError}</span>
         </div>
